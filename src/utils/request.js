@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ElMessage } from 'element-plus';
 
 const request = axios.create({
-    baseURL: 'http://192.168.3.28:8089/',
+    baseURL: process.env.VITE_API_BASE_URL,
     timeout: 5000,
 });
 
@@ -33,7 +33,10 @@ request.interceptors.response.use(response => {
     // 对响应数据做点什么
     //对接口异常的数据，给用户提示
     if(response.data.code === 500){
-        ElMessage.warning(`服务器内部错误,请联系管理员,${response.data.message}`)
+        ElMessage.warning(`${response.data.message},请联系管理员`)
+    }
+    if(response.data.code === 501){
+        ElMessage.warning(`${response.data.message}`)
     }
     if(response.data.code >= 400 && response.data.code < 500 && response.data.code != 403){
         ElMessage.error(response.data.message)

@@ -44,10 +44,27 @@ export const updateUser = (data) => {
     return request.put(`/User/UpdateUser`,data)
 }
 
+// 修改本人信息
+export const updateMyInfo = (data) => {
+    return request.put('/User/UpdateUserInfo',data)
+}
+
+// 上传用户头像
+export const uploadAvatar = (data) => {
+    return request.post('/User/UploadUserAvatar',data)
+}
+
+
 // 获取岗位信息
 export const queryPositions = (params) => {
     return request.get('/Post/GetPostList',{params})
 }
+
+// 获取可申请岗位信息
+export const queryApplyPositions = () => {
+    return request.get('/Post/GetPostListForStudent')
+}
+
 
 // 添加岗位
 export const addPost = (data) => {
@@ -169,7 +186,7 @@ export const queryStudentSchedule = (params) => {
 }
 // 添加学生排班信息
 export const addStudentSchedule = (data) => {
-    return request.post(`/Schedule/GenerateSchedules?postId=${data.postId}`,data)
+    return request.post(`/Schedule/GenerateSchedules`,data)
 }
 
 // 获取学生信息
@@ -265,4 +282,14 @@ export const cancelApplyPosition = (applyId) => {
 // 获取菜单列表
 export const getMenuList = () => {
     return request.get('/Menu/GetMenu')
+}
+
+// 发送忘记密码验证码
+export const forgetPasswordCode = (userName) =>{
+    return request.post('/Authorize/SendResetPasswordToken?userName='+userName)
+}
+
+// 重置密码
+export const resetPassword = (data) => {
+    return request.post('/Authorize/ForgetPassword',data)
 }

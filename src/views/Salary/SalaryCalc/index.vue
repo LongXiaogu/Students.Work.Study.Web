@@ -100,7 +100,7 @@
       />
     </div>
 
-    <el-dialog v-model = 'dialogVisibleCalc' :before-close = 'beforeCloseCalc' title = '计算详情' width = '500px'> 
+    <el-dialog v-model = 'dialogVisibleCalc' :before-close = 'beforeCloseCalc' title = '计算详情' width = '80%'> 
       <el-table :data="calcTable.list" style="width: 100%; height: 100%">
         <el-table-column prop="id" label="序号" width="100"></el-table-column>
         <el-table-column prop="studentName" label="学生姓名" width="150"></el-table-column>
@@ -221,7 +221,7 @@ const tableData = reactive({
     total:0
 })
 
-const calcTable = ref({
+const calcTable = reactive({
     list:[],
     total:0
 })
@@ -267,6 +267,9 @@ const beforeCloseCalc = (action, instance) => {
     dialogVisibleCalc.value = false
     calcTable.list = []
     calcTable.total = 0
+    starTimeRef.value = ''
+    endTimeRef.value = ''
+    getListData()
 }
 
 const beforeCloseEdit = (action, instance) => {
@@ -310,20 +313,27 @@ const calculateFun = async () => {
     endDate : endDate,
   }
   console.log(params)
-  await calculateSalary(params).then(res => {
-    if(res.data.code === 200){
-      ElMessage.success(res.data.message)
-      const list = res.data.data
-      list.forEach(item => {
-        item.startDate = dayjs(item.startDate).format('YYYY-MM-DD')
-        item.endDate = dayjs(item.endDate).format('YYYY-MM-DD')
-      })
-      calcTable.list = list
-      calcTable.total = res.data.total
-      openCalc()
-      getListData()
-    }
+  const loading = ElLoading.service({
+    lock: true,
+    text: 'Loading',
+    background: 'rgba(255, 255, 255, 0.7)',
   })
+  setTimeout(async () => {
+    await calculateSalary(params).then(res => {
+      if(res.data.code === 200){
+        ElMessage.success(res.data.message)
+        const list = res.data.data
+        list.forEach(item => {
+          item.startDate = dayjs(item.startDate).format('YYYY-MM-DD')
+          item.endDate = dayjs(item.endDate).format('YYYY-MM-DD')
+        })
+        calcTable.list = list
+        calcTable.total = res.data.total
+        openCalc()
+      }
+    })
+    loading.close()
+  }, 2000)
 }
 
 //修改

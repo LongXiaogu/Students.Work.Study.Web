@@ -63,7 +63,7 @@
     <el-table :data="tableData.list" style="width: 100%; height: 100%">
       <el-table-column prop="id" label="序号" width="100"></el-table-column>
       <el-table-column prop="studentName" label="学生姓名" width="100"></el-table-column>
-      <el-table-column prop="postName" label="岗位名称" width="100"></el-table-column>
+      <el-table-column prop="postName" show-overflow-tooltip label="岗位名称" width="100"></el-table-column>
       <el-table-column prop="date" label="考勤日期" width="150" ></el-table-column>
       <el-table-column prop="start_Time" label="开始时间" width="100"></el-table-column>
       <el-table-column prop="end_Time" label="结束时间" width="100"></el-table-column>
@@ -149,6 +149,8 @@ import { reactive ,onMounted ,ref, nextTick} from 'vue';
 import {fetchAttendance,updateAttendance,exportAttendance } from '../../api';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { ca } from 'element-plus/es/locales.mjs';
+import { ElMessage } from 'element-plus';
 
 dayjs.extend(utc);
 
@@ -319,14 +321,28 @@ const exportData = () => {
     condition: queryCondition.condition,
   }
   exportAttendance(params).then(res => {
-    const url = window.URL.createObjectURL(new Blob([res.data]));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '学生考勤记录' + dayjs(starTimeRef.value).format('YYYYMMDD') + '_' + dayjs(endTimeRef.value).format('YYYYMMDD') + '.xlsx';
-    document.body.appendChild(a);
-    a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+    try{
+      const loading = ElLoading.service({
+        lock: true,
+        text: 'Loading',
+        background: 'rgba(255, 255, 255, 0.7)',
+      })
+      setTimeout(() => {
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = '学生考勤记录' + dayjs(starTimeRef.value).format('YYYYMMDD') + '_' + dayjs(endTimeRef.value).format('YYYYMMDD') + '.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        ElMessage.success('导出成功')
+        loading.close()
+      }, 2000);
+      
+    }catch(err){
+      ElMessage.error(err.message)
+    }
   })
 }
 

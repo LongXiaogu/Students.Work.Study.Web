@@ -161,13 +161,13 @@
                             <el-form-item prop="validCode">
                                 <el-input v-model="loginForm.validCode" placeholder="请输入验证码" :prefix-icon="Lock">
                                     <template #append>
-                                        <span @click="countDownChange">{{ countDown.validText }}</span>
+                                        <span @click="countDownChange" style="cursor: pointer">{{ countDown.validText }}</span>
                                     </template>
                                 </el-input>
                             </el-form-item>
                             <div class="form-footer">
-                                <el-checkbox >自动登录</el-checkbox>
-                                <el-link type="primary">忘记密码</el-link>
+                                
+                                <el-link type="primary" @click="dialog = true">忘记密码</el-link>
                             </div>
                         </el-form>
                     </el-tab-pane>
@@ -215,13 +215,13 @@
                                 <el-select v-model="registerForm.roleId" placeholder="请选择角色">
                                     <el-option label="教师" value="2"></el-option>
                                     <el-option label="学生" value="3"></el-option>
-                                    <el-option label="游客" value="6"></el-option>
+                                    <!--<el-option label="游客" value="6"></el-option>-->
                                 </el-select>
                             </el-form-item>
                             <el-form-item prop="validCode">
                                 <el-input v-model="registerForm.validCode" placeholder="请输入验证码" :prefix-icon="Lock">
                                     <template #append>
-                                        <span @click="countDownChange">{{ countDown.validText }}</span>
+                                        <span @click="countDownChange" style="cursor: pointer">{{ countDown.validText }}</span>
                                     </template>
                                 </el-input>
                             </el-form-item>
@@ -232,12 +232,44 @@
             </div>
         </div>
     </div>
+    <el-drawer
+        v-model="dialog"
+        title="修改密码"
+        :before-close="handleClose"
+        direction="ltr"
+        class="demo-drawer"
+    >
+        <div class="demo-drawer__content">
+            <el-form :model = "forgetForm" :rules = "forgetRulers" ref="forgetFormRef">
+                <el-form-item prop="userName">
+                    <el-input v-model="forgetForm.userName" placeholder="请输入用户名" :prefix-icon="UserFilled"></el-input>
+                </el-form-item>
+                <el-form-item prop="password">
+                    <el-input type="password" v-model="forgetForm.password" placeholder="请输入新密码" :prefix-icon="Lock"></el-input>
+                </el-form-item>
+                <el-form-item prop="againPassWord">
+                    <el-input type="password" v-model="forgetForm.againPassWord" placeholder="请再次输入新密码" :prefix-icon="Lock"></el-input>
+                </el-form-item>
+                <el-form-item prop="validCode">
+                    <el-input v-model="forgetForm.validCode" placeholder="请输入验证码" :prefix-icon="Lock">
+                        <template #append >
+                            <span @click="forgetCountDownChange" style="cursor: pointer">{{ forgetCountDown.validText }}</span>
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-button @click="cancelForm">取消</el-button>
+                <el-button type="primary" :loading="loading" @click="onClick(forgetFormRef)">
+                    {{ loading ? '提交中 ...' : '提交' }}
+                </el-button>
+            </el-form>
+        </div>
+    </el-drawer>
 </template>
 
 <script setup>
 import {ref, reactive,computed, toRaw} from 'vue';
 import { UserFilled, Lock, Message, Iphone } from '@element-plus/icons-vue';
-import { loginCode , registerCode, login ,register, getMenuList} from '../../api';
+import { loginCode , registerCode, login ,register, getMenuList, forgetPasswordCode, resetPassword} from '../../api';
 import { useRouter } from 'vue-router';
 import { useStore} from 'vuex';
 
@@ -265,6 +297,17 @@ const registerForm = reactive({
     againPassWord: '',
 })
 
+// 忘记密码
+const forgetForm = reactive({
+    userName: '',
+    validCode: '',
+    password: '',
+    againPassWord: '',
+})
+
+const dialog = ref(false)
+const loading = ref(false)
+const forgetFormRef = ref()
 
 // 表单验证
 const validateUser = (rule, value, callback) => {
@@ -287,7 +330,7 @@ const validatePassword = (rule, value, callback) => {
 const validateAgainPassword = (rule, value, callback) => {
     if (value === '') {
         callback(new Error('请再次输入密码'))
-    } else if (value !== registerForm.password) {
+    } else if (value !== registerForm.password && value !== forgetForm.password) {
         callback(new Error('两次输入密码不一致'))
     } else {
         callback()
@@ -434,13 +477,9 @@ const submitForm = async (formRef) => {
                                     router.push('/')
                                 }
                             })
-                            
+
                         }
                     })
-
-                    
-
-
                 }else{
                     console.log(fields)
                 }
@@ -465,6 +504,9 @@ const submitForm = async (formRef) => {
                             ElMessage.success('注册成功,请登录')
                             handleClick('login',{})
                             activeName.value = 'login'
+                            countDown.time = 60
+                            countDown.validText = '获取验证码'
+                            flag = false
                         }
                     })
                 }
@@ -475,4 +517,105 @@ const submitForm = async (formRef) => {
     }
 }
 
+const onClick =  (forgetFormRef) => {
+  loading.value = true
+  setTimeout(async () => {
+    if(!forgetFormRef){
+        return;
+    }
+    await forgetFormRef.validate((valid, fields) =>{
+        if(valid){
+            resetPassword({UserName:forgetForm.userName,Code:forgetForm.validCode,NewPassword:forgetForm.password}).then((res) => {
+                if(res.data.code === 200){
+                    ElMessage.success('密码修改成功,请重新登录')
+                    clearforgetForm()
+                    dialog.value = false
+                }
+            })
+        }else{
+            console.log('error submit!!', fields);
+        }
+    })
+    loading.value = false
+  }, 400)
+}
+const handleClose = (done) => {
+  if (loading.value) {
+    return
+  }
+  ElMessageBox.confirm('是否确认关闭？')
+    .then(() => {
+        done()
+        clearforgetForm()
+    })
+    .catch(() => {
+      // catch error
+    })
+}
+
+const cancelForm = () => {
+  loading.value = false
+  dialog.value = false
+  clearTimeout(timer)
+}
+
+const forgetCountDown = reactive({
+    validText: '获取验证码',
+    time: 60,
+})
+var forgetFlag = false;
+const forgetCountDownChange = () =>{
+    // 防止多次被点击
+    if(forgetFlag){
+        return;
+    }
+    forgetFlag = true
+    if(forgetForm.userName === '' ){
+        ElMessage.error('请输入用户名')
+        forgetFlag = false
+        return;
+    }
+
+    // 发送验证码
+    forgetPasswordCode(forgetForm.userName).then((rew)=>{
+        if(rew.data.code === 200){
+            ElMessage.success('验证码发送成功')
+        }
+    })
+    // 倒计时
+    const time =setInterval(() => {
+      if (forgetCountDown.time <= 0) {
+        forgetCountDown.time = 60
+        forgetCountDown.validText = '获取验证码'
+        forgetFlag = false
+        clearInterval(time)
+      } else {
+        forgetCountDown.time--
+        forgetCountDown.validText = forgetCountDown.time + '秒后重试'
+      }
+    }, 1000);
+}
+const forgetRulers = {
+    userName: [
+        { required: true, message: '请输入用户名', trigger: 'blur' }
+    ],
+    validCode: [
+        { required: true, message: '请输入验证码', trigger: 'blur' }
+    ],
+    password: [
+        { validator:validatePassword, trigger: 'blur' }
+    ],
+    againPassWord: [
+        { validator:validateAgainPassword, trigger: 'blur' },
+
+    ],
+
+}
+
+const clearforgetForm = () => {
+    forgetForm.userName = ''
+    forgetForm.validCode = ''
+    forgetForm.password = ''
+    forgetForm.againPassWord = ''
+}
 </script>

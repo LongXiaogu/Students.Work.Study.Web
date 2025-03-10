@@ -34,6 +34,11 @@ router.beforeEach((to, from, next) => {
 // 配置dayjs中文
 dayjs.locale('zh-cn')
 
+// src/main.js 或 src/App.vue
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+console.log('Environment:', import.meta.env);
+console.log('API Base URL:', baseURL);
+
 const app = createApp(App)
 
 // 配置ElementPlus中文

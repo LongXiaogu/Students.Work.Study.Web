@@ -135,7 +135,7 @@ const fetchSchedules = async () => {
         console.log("data",res.data.data)
         schedules.value = res.data.data
         ElMessage.success('获取排班数据成功')
-        console.log(schedules.value)
+        console.log("schedules",schedules.value)
       }
     })
 
@@ -149,6 +149,7 @@ const fetchSchedules = async () => {
 const handleCheckIn = async () => {
   
   const currentTime = dayjs()
+  console.log("当前时间:",currentTime)
   const currentSlot = timeSlots.find(slot => {
     const [start, end] = slot.timeRange
     return currentTime.isBetween(
@@ -170,7 +171,7 @@ const handleCheckIn = async () => {
   )
 
   if (!validSchedule) {
-    ElMessage.warning('当前无有效排班')
+    ElMessage.warning('还不是签到时间')
     return
   }
 
@@ -245,12 +246,12 @@ const handleCheckOut = async () => {
     const data = {
       id: checkInData.value.find(r => 
         dayjs(r.date).isSame(currentTime, 'day') && 
-        r.timeSlot === currentSlot.value
+        r.timeSlot.value === currentSlot.value
       ).id
     }
     console.log("测试", checkInData.value.find(r => 
         dayjs(r.date).isSame(currentTime, 'day') && 
-        r.timeSlot === currentSlot.value
+        r.timeSlot.value === currentSlot.value
       ))
     checkOut(data).then(res => {
       if(res.data.code === 200){
@@ -285,7 +286,7 @@ const fetchCheckInRecords = async () => {
               dayjs(item.actual_Start_Time).set('hour', start.split(':')[0]).set('minute', start.split(':')[1]),
               dayjs(item.actual_Start_Time).set('hour', end.split(':')[0]).set('minute', end.split(':')[1])
             )
-          }).value,
+          }),
           time: dayjs(item.actual_Start_Time),
           status: item.status === 0 ? 'normal' : 'late'
         }
@@ -310,7 +311,7 @@ const getSlotStatus = (date, slot) => {
   // 2. 查找打卡记录
   const record = checkInData.value.find(r => 
     dayjs(r.date).isSame(date, 'day') && 
-    r.timeSlot === slot
+    r.timeSlot.value === slot
   )
 
   if (!record) return 'blue' // 有排班但未打卡
@@ -331,6 +332,7 @@ const getSlotStatus = (date, slot) => {
 onMounted(() => {
   fetchSchedules()
   fetchCheckInRecords()
+  console.log("目前时间为",dayjs().format('YYYY-MM-DD HH:mm:ss'))
 })
 </script>
 

@@ -80,7 +80,7 @@
     </div>
 
     <el-dialog v-model = 'dialogVisibleAdd' :before-close = 'beforeCloseAdd' title = '添加薪资配置信息' width = '500px'> 
-      <el-form ref="formAddRef" label-width="100px" label-position="left" :model="formAdd" :rules="rules">
+      <el-form ref="formAddRef" label-width="110px" label-position="left" :model="formAdd" :rules="rules">
           <el-form-item label = "岗位名称" prop = "postId">
             <el-select v-model="formAdd.postId" filterable placeholder="请选择岗位名称" style="width: 240px">
               <el-option v-for="item in postList" :key="item.value" :label="item.label" :value="item.value"/>

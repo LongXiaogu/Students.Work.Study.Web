@@ -2,7 +2,7 @@
   <div class="post-container">
     <!-- 新增我的申请按钮 -->
     <div class="action-bar">
-      <el-button type="info" @click="showMyApplications">我的申请</el-button>
+      <el-button type="primary" @click="showMyApplications">我的申请</el-button>
     </div>
     <!-- 岗位列表 -->
     <el-row :gutter="20">
@@ -116,7 +116,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElLoading } from 'element-plus'
 import dayjs from 'dayjs'
-import { queryPositions, applyPosition, getApplyPositionsByStudent, cancelApplyPosition } from '../../api'
+import { queryApplyPositions, applyPosition, getApplyPositionsByStudent, cancelApplyPosition } from '../../api'
 
 // 响应式数据
 const postList = ref([])
@@ -195,7 +195,7 @@ const getMyApplications = async () => {
 // 获取岗位列表
 const getPosts = async () => {
   try {
-    queryPositions().then((res) => {
+    queryApplyPositions().then((res) => {
       if(res.data.code === 200){
         const list = res.data.data.map((item) => {
           return {

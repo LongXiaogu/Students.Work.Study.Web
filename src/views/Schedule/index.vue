@@ -122,7 +122,12 @@
             <el-option v-for="item in postList" :key="item.value" :label="item.label" :value="item.value"/>
           </el-select>
         </el-form-item>
-        
+        <el-form-item label = "开始日期" prop = "startDate">
+          <el-date-picker v-model="formAdd.startDate" type="datetime" placeholder="开始日期" style="width: 240px" format="YYYY-MM-DD"/>
+        </el-form-item>
+        <el-form-item label = "结束日期" prop = "endDate">
+          <el-date-picker v-model="formAdd.endDate" type="datetime" placeholder="结束日期" style="width: 240px" format="YYYY-MM-DD"/>
+        </el-form-item>
       </el-form>
       <template #footer>
           <el-button type="primary" @click="confirm(formAddRef)">确认</el-button>
@@ -198,7 +203,9 @@ const dialogVisibleEdit = ref(false)
 
 // 添加弹窗表单数据
 const formAdd = reactive({
-    postId: ''
+    postId: '',
+    startDate: '',
+    endDate: '',
 })
 // 编辑弹窗表单数据
 const formEdit = reactive({
@@ -309,14 +316,20 @@ const openedit = (row) =>{
 // 表单提交添加
 const confirm = async (formEl) => {
   if(!formEl) return
+  
   await formEl.validate((valid,field) => {
     if(valid){
+      formAdd.startDate = dayjs(formAdd.startDate).format('YYYY-MM-DD')
+      formAdd.endDate = dayjs(formAdd.endDate).format('YYYY-MM-DD')
       addStudentSchedule(formAdd).then(res => {
         if(res.data.code === 200){
           ElMessage.success(res.data.message)
           dialogVisibleAdd.value = false
           formEl.resetFields()
           getListData()
+          formAdd.postId = ''
+          formAdd.startDate = ''
+          formAdd.endDate = ''
         }
       })
     }else{
@@ -328,6 +341,7 @@ const confirm = async (formEl) => {
 //修改
 const confirmEdit = async (formEl) => {
   if(!formEl) return
+  
   await formEl.validate((valid,field) => {
     if(valid){
       changeClass(formEdit).then(res => {
@@ -349,6 +363,12 @@ const rules = {
     ],
     newStudentId: [
       { required: true, message: '请选择换班学生', trigger: 'change' }
+    ],
+    startDate: [
+      { required: true, message: '请选择开始日期', trigger: 'change' }
+    ],
+    endDate: [
+      { required: true, message: '请选择结束日期', trigger: 'change' }
     ],
   
 }
